@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CLABE - Copiar</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8}
+    body{font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#071028 0%, #041021 100%);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:16px;box-shadow:0 10px 30px rgba(2,6,23,0.6);padding:28px;max-width:480px;width:100%}
+    h1{font-size:20px;margin:0 0 14px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .clabe-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02);padding:14px;border-radius:10px}
+    .clabe{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;letter-spacing:2px;word-break:break-all}
+    button{background:var(--accent);border:none;color:#04202a;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .actions{display:flex;gap:10px;margin-top:14px}
+    .link-entry{display:inline-block;margin-top:18px;color:var(--accent);text-decoration:none;font-weight:600}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:36px;background:#052b2f;padding:10px 14px;border-radius:10px;color:#bff4f6;box-shadow:0 6px 20px rgba(3,10,20,0.6);display:none}
+    .small{font-size:13px;color:var(--muted);margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="CLABE card">
+    <h1>CLABE para transferencia</h1>
+    <p class="lead">Usa el siguiente número para realizar tu transferencia.</p>
+
+    <div class="clabe-row" aria-live="polite">
+      <div class="clabe" id="clabeValue">638180010179225739</div>
+        <button id="copyBtn" aria-label="Copiar CLABE">Copiar CLABE</button>
+    </div>
+
+    <div class="actions">
+      <button id="copyWithConfirm" class="ghost">Copiar y mostrar</button>
+      <a class="link-entry" id="entryLink" href="./index.html" title="Link de ingreso">Ir a la página (link de ingreso)</a>
+    </div>
+
+    <div class="small">Consejo: al pegar en la banca en línea, asegúrate de verificar el monto y la referencia antes de confirmar.</div>
+  </div>
+
+  <div class="toast" id="toast">CLABE copiada al portapapeles</div>
+
+  <script>
+    const clabe = document.getElementById('clabeValue').textContent.trim();
+    const copyBtn = document.getElementById('copyBtn');
+    const copyWithConfirm = document.getElementById('copyWithConfirm');
+    const toast = document.getElementById('toast');
+
+    async function showToast(text){
+      toast.textContent = text;
+      toast.style.display = 'block';
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>{ toast.style.display = 'none'; }, 1800);
+    }
+
+    async function copyText(text){
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text; document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        return true;
+      }catch(e){
+        return false;
+      }
+    }
+
+    copyBtn.addEventListener('click', async ()=>{
+      const ok = await copyText(clabe);
+      if(ok) showToast('CLABE copiada al portapapeles');
+      else showToast('No se pudo copiar. Copia manualmente.');
+    });
+
+    copyWithConfirm.addEventListener('click', async ()=>{
+      const ok = await copyText(clabe);
+      if(ok) alert('CLABE copiada:\n' + clabe);
+      else alert('No se pudo copiar. Aquí está:\n' + clabe);
+    });
+
+    const entryLink = document.getElementById('entryLink');
+    entryLink.addEventListener('contextmenu', (e)=>{
+      e.preventDefault();
+      const url = window.location.href.split('#')[0];
+      copyText(url).then(ok=> showToast(ok ? 'Link copiado' : 'No se pudo copiar link'));
+    });
+  </script>
+</body>
+</html>
